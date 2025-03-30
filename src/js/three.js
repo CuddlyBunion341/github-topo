@@ -81,8 +81,8 @@ export default class Three {
     const material = new T.MeshStandardMaterial({
       wireframe: false,
       flatShading: false,
-      metalness: 0.5, // Add some metalness for a smoother look
-      roughness: 0.5 // Adjust roughness for a smoother surface
+      roughness: 0.5, // Adjust roughness for a smoother surface
+      vertexColors: true
     });
     this.terrainMesh = new T.Mesh(geometry, material);
     this.cubeGroup.add(this.terrainMesh);
@@ -94,12 +94,13 @@ export default class Three {
         const height = day * CUBE_SIZE; // Scale height based on contribution value
         heights[dayIndex + weekIndex * week.length] = height; // Store height for each vertex
 
-        // Set vertex color based on day value (normalized to 0-1 range)
         const colorValue = day / Math.max(...week); // Normalize color based on max value in the week
-        colors.push(new T.Color(colorValue, 1 - colorValue, 0)); // Gradient from green to red
+        colors.push([0, colorValue, 0]); // Gradient light to dark green
       });
     });
 
+    const emptyColorArray = new Float32Array(this.terrainMesh.geometry.attributes.position.count * 3);
+    this.terrainMesh.geometry.setAttribute('color', new T.Float32BufferAttribute(emptyColorArray, 3));
     // Update vertex heights with smooth transitions
     for (let weekIndex = 0; weekIndex < contributions.length; weekIndex++) {
       for (let dayIndex = 0; dayIndex < contributions[weekIndex].length; dayIndex++) {
@@ -120,13 +121,12 @@ export default class Three {
         if (neighbors.length > 0) {
           const averageHeight = neighbors.reduce((sum, h) => sum + h, 0) / neighbors.length;
           this.terrainMesh.geometry.attributes.position.setZ(vertexIndex, (height + averageHeight) / 2); // Smooth the height
+          this.terrainMesh.geometry.attributes.color.setXYZ(vertexIndex, ...colors[vertexIndex]);
         }
       }
     }
 
-    // Create a color attribute for the geometry
-    this.terrainMesh.geometry.setAttribute('color', new T.Float32BufferAttribute(colors.flat(), 3));
-
+    console.log(this.terrainMesh.geometry.attributes.color)
     this.terrainMesh.geometry.attributes.position.needsUpdate = true; // Notify Three.js to update the geometry
     this.terrainMesh.geometry.attributes.color.needsUpdate = true; // Notify Three.js to update the color attribute
 
