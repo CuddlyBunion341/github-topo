@@ -10,7 +10,6 @@
     "plugin:import/recommended",
     "plugin:promise/recommended",
     "plugin:sonarjs/recommended",
-    "plugin:unicorn/recommended"
   ],
   "overrides": [],
   "parserOptions": {
@@ -23,7 +22,6 @@
     "simple-import-sort",
     "promise",
     "sonarjs",
-    "unicorn"
   ],
   "settings": {
     "import/resolver": {

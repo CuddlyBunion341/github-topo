@@ -12,6 +12,7 @@
   --color: #f3f3f3;
   --accent-primary: #2563eb; /* blue-600 */
   --accent-primary-state: #1d4ed8; /* blue-700 */
+  --accent-primary-rgb: 37, 99, 235; /* RGB values for blue-600 */
 }
 
 html,

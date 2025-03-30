@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
+const { nextui } = require("@nextui-org/react");
+
 module.exports = {
-  content: ['./index.html', './src/**/**/*.{html,css,js}'],
+  content: [
+    './index.html', 
+    './src/**/**/*.{html,css,js}',
+    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}'
+  ],
   darkMode: 'class',
   theme: {
     extend: {
@@ -13,5 +19,6 @@ module.exports = {
         'accent-primary-state': 'var(--accent-primary-state)'
       }
     }
-  }
+  },
+  plugins: [nextui()]
 };

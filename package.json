@@ -20,7 +20,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nextui-org/react": "^2.6.11",
     "@vitejs/plugin-legacy": "^6.0.2",
+    "framer-motion": "^12.6.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "three": "^0.174.0"
   },
   "devDependencies": {

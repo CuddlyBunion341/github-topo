@@ -38,3 +38,33 @@
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
 }
+
+// Username form styles
+#username-form {
+  input {
+    background-color: var(--primary);
+    color: var(--color);
+    border-color: var(--accent-primary);
+    transition: all 0.2s ease-in-out;
+    
+    &:focus {
+      border-color: var(--accent-primary-state);
+      box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb), 0.2);
+    }
+    
+    &::placeholder {
+      color: var(--color);
+      opacity: 0.5;
+    }
+  }
+  
+  button {
+    background-color: var(--accent-primary);
+    color: white;
+    transition: all 0.2s ease-in-out;
+    
+    &:hover, &:focus {
+      background-color: var(--accent-primary-state);
+    }
+  }
+}

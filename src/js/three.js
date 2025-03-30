@@ -475,6 +475,7 @@ export default class Three {
   }
 
   render() {
+    if (this.isDisposed) return;
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));
   }
@@ -492,5 +493,52 @@ export default class Three {
 
     this.renderer.setSize(device.width, device.height);
     this.renderer.setPixelRatio(Math.min(device.pixelRatio, 2));
+  }
+
+  dispose() {
+    this.isDisposed = true;
+
+    window.removeEventListener('resize', this.onResize.bind(this));
+
+    if (this.controls) {
+      this.controls.dispose();
+    }
+
+    this.scene.traverse((object) => {
+      if (object.geometry) {
+        object.geometry.dispose();
+      }
+
+      if (object.material) {
+        if (Array.isArray(object.material)) {
+          for (const material of object.material) material.dispose();
+        } else {
+          object.material.dispose();
+        }
+      }
+    });
+
+    if (this.renderer) {
+      this.renderer.dispose();
+
+      const context = this.canvas.getContext('webgl');
+      if (context) {
+        context.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+    }
+
+    while (this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.controls = null;
+    this.clock = null;
+    this.ambientLight = null;
+    this.directionalLight = null;
+    this.terrainMesh = null;
+    this.cubeGroup = null;
   }
 }
