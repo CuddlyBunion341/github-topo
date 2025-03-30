@@ -18,56 +18,32 @@
       Enable JavaScript to enjoy all the features of this app.
     </noscript>
     <main class="flex h-full bg-primary text-color">
-      <header
-        class="absolute top-0 z-[1] w-full cursor-default bg-accent-primary sm:w-auto"
-      >
-        <div class="relative flex justify-center">
-          <h1
-            class="z-[1] select-none p-4 text-xl font-semibold sm:text-2xl md:text-3xl"
-          >
+      <header class="absolute top-0 z-[1] w-full cursor-default bg-gradient-to-r from-accent-primary to-primary shadow-lg p-6">
+        <div class="relative flex justify-center items-center">
+          <h1 class="z-[1] select-none text-3xl font-bold text-white sm:text-4xl md:text-5xl">
             GitHub Topo
           </h1>
-          <div
-            class="arrow-right top absolute -right-[43px] -top-[35px] hidden h-0 w-0 rotate-90 border-b-[60px] border-t-[70px] border-b-transparent border-l-accent-primary border-t-transparent sm:-right-[40px] sm:block sm:border-l-[70px] md:-right-[43px] md:border-l-[76px]"
-          ></div>
+          <a
+            id="github"
+            title="View on GitHub"
+            aria-label="View on GitHub"
+            href="https://github.com/CuddlyBunion341/github-topo"
+            class="github-corner z-[4] ml-4"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="60"
+              height="60"
+              fill="currentColor"
+              style="color: var(--color);"
+            >
+              <path d="M12 .297c-6.627 0-12 5.373-12 12 0 5.304 3.438 9.8 8.205 11.387.6.111.82-.261.82-.577 0-.287-.011-1.243-.017-2.25-3.338.724-4.043-1.607-4.043-1.607-.546-1.387-1.333-1.757-1.333-1.757-1.089-.743.083-.728.083-.728 1.204.085 1.838 1.236 1.838 1.236 1.067 1.826 2.8 1.297 3.48.992.108-.774.418-1.297.76-1.597-2.665-.303-5.467-1.333-5.467-5.933 0-1.313.469-2.386 1.236-3.227-.124-.303-.536-1.53.117-3.185 0 0 1.008-.322 3.303 1.227.957-.266 1.986-.399 3.006-.404 1.02.005 2.049.138 3.006.404 2.295-1.549 3.303-1.227 3.303-1.227.653 1.655.241 2.882.118 3.185.769.841 1.236 1.914 1.236 3.227 0 4.608-2.805 5.63-5.475 5.925.43.372.815 1.102.815 2.222 0 1.606-.014 2.903-.014 3.295 0 .318.218.693.825.577C20.565 22.097 24 17.601 24 12.297c0-6.627-5.373-12-12-12z"/>
+            </svg>
+          </a>
         </div>
       </header>
       <canvas id="canvas" class="z-[0] h-full w-full"></canvas>
-      <a
-        id="github"
-        title="View on GitHub"
-        aria-label="View on GitHub"
-        href="https://github.com/CuddlyBunion341/github-topo"
-        class="github-corner z-[4]"
-      >
-        <svg
-          width="80"
-          height="80"
-          viewBox="0 0 250 250"
-          style="
-            fill: var(--color);
-            color: var(--primary);
-            position: absolute;
-            top: 0;
-            border: 0;
-            right: 0;
-          "
-          aria-hidden="true"
-        >
-          <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-          <path
-            d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
-            fill="currentColor"
-            style="transform-origin: 130px 106px"
-            class="octo-arm"
-          ></path>
-          <path
-            d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
-            fill="currentColor"
-            class="octo-body"
-          ></path>
-        </svg>
-      </a>
     </main>
 
     <script type="module" src="/src/js/index.js"></script>

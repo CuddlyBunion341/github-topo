@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // eslin
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js'; // eslint-disable-line import/no-unresolved
 import { FontLoader } from 'three/addons/loaders/FontLoader.js'; // eslint-disable-line import/no-unresolved
 
+import Tooltip from './components/Tooltip.js';
+
 const device = {
   width: window.innerWidth,
   height: window.innerHeight,
@@ -10,7 +12,6 @@ const device = {
 };
 
 const white = 0xFF_FF_FF; // prettier-ignore
-const black = 0x00_00_00; // prettier-ignore
 const gray = 0xCC_CC_CC; // prettier-ignore
 const greenBase = 0; // prettier-ignore
 const greenOffset = 0.2; // prettier-ignore
@@ -20,8 +21,18 @@ export default class Three {
     this.canvas = canvas;
     this.username = username;
     this.stats = stats;
+    this.contributions = contributions;
+    this.tooltip = new Tooltip();
+    this.raycaster = new T.Raycaster();
+    this.mouse = new T.Vector2(-1, -1);
+    this.mouseEvent = null;
+    this.intersectedObject = null;
+    this.highlightedMesh = null;
+    this.contributionData = [];
 
     this.scene = new T.Scene();
+    this.scene.background = new T.Color(0xf5f5f5);
+    this.scene.fog = new T.Fog(0xf5f5f5, 20, 100);
 
     this.camera = new T.PerspectiveCamera(
       75,
@@ -47,12 +58,16 @@ export default class Three {
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
 
     this.controls = new OrbitControls(this.camera, this.canvas);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.05;
 
     this.clock = new T.Clock();
 
     this.setLights();
     this.setGeometry(contributions);
     this.addNameplate();
+    this.addEnvironment();
+    this.setupRaycaster();
     this.render();
     this.setResize();
   }
@@ -65,6 +80,38 @@ export default class Three {
     this.directionalLight.position.set(5, 5, 5);
     this.directionalLight.castShadow = true;
     this.scene.add(this.directionalLight);
+  }
+
+  addEnvironment() {
+    const hemisphereLight = new T.HemisphereLight(0xffffff, 0x404040, 0.6);
+    this.scene.add(hemisphereLight);
+
+    const particleGeometry = new T.BufferGeometry();
+    const particleCount = 500;
+    const particlePositions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      particlePositions[i3] = (Math.random() - 0.5) * 40;
+      particlePositions[i3 + 1] = Math.random() * 20 + 5;
+      particlePositions[i3 + 2] = (Math.random() - 0.5) * 40;
+    }
+
+    particleGeometry.setAttribute(
+      'position',
+      new T.BufferAttribute(particlePositions, 3)
+    );
+
+    const particleMaterial = new T.PointsMaterial({
+      color: 0xffffff,
+      size: 0.05,
+      transparent: true,
+      opacity: 0.6,
+      sizeAttenuation: true
+    });
+
+    this.particles = new T.Points(particleGeometry, particleMaterial);
+    this.scene.add(this.particles);
   }
 
   setGeometry(contributions) {
@@ -80,6 +127,8 @@ export default class Three {
 
     const { contributionHeights, contributionColors } =
       this.calculateContributions(contributions, CUBE_SIZE);
+
+    this.preprocessContributionData(contributions);
 
     const { topVertices, topColors, topIndices } = this.calculateTopGeometry(
       width,
@@ -109,6 +158,44 @@ export default class Three {
     );
     this.createTerrainMesh(terrainGeometry, allVertices, allColors, allIndices);
     this.addGridHelper(width, height);
+  }
+
+  preprocessContributionData(contributions) {
+    this.contributionData = [];
+    const currentYear = new Date().getFullYear();
+    const startDate = new Date(currentYear, 0, 1);
+
+    const dayOfWeek = startDate.getDay();
+    if (dayOfWeek > 0) {
+      startDate.setDate(startDate.getDate() - dayOfWeek);
+    }
+
+    const { width, height } = this.getDimensions(contributions);
+
+    for (let weekIndex = 0; weekIndex < width; weekIndex++) {
+      const week = contributions[weekIndex];
+      for (let dayIndex = 0; dayIndex < height; dayIndex++) {
+        const level = week[dayIndex];
+
+        const dayDate = new Date(startDate);
+        dayDate.setDate(startDate.getDate() + weekIndex * 7 + dayIndex);
+
+        let count = 0;
+        if (level === 1) count = 2;
+        else if (level === 2) count = 5;
+        else if (level === 3) count = 8;
+        else if (level === 4) count = 12;
+
+        this.contributionData.push({
+          weekIndex,
+          dayIndex,
+          level,
+          date: dayDate.toISOString().split('T')[0],
+          count,
+          dayName: dayDate.toLocaleDateString('en-US', { weekday: 'long' })
+        });
+      }
+    }
   }
 
   createContributionsBase(width, depth, height) {
@@ -417,14 +504,17 @@ export default class Three {
           textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
 
         const textMaterial = new T.MeshStandardMaterial({
-          color: black,
-          metalness: 0,
-          roughness: 1
+          color: 0x2c3e50,
+          metalness: 0.7,
+          roughness: 0.3,
+          emissive: 0x0c1e30,
+          emissiveIntensity: 0.2
         });
 
         const textMesh = new T.Mesh(textGeometry, textMaterial);
         textMesh.position.set(-textWidth / 2, 1.3, 0);
         textMesh.castShadow = true;
+        textMesh.receiveShadow = true;
         pedestalGroup.add(textMesh);
 
         if (this.stats) {
@@ -462,6 +552,8 @@ export default class Three {
 
             const statsMesh = new T.Mesh(statsGeometry, statsMaterial);
             statsMesh.position.set(-statsWidth / 2, yOffset, 0);
+            statsMesh.castShadow = true;
+            statsMesh.receiveShadow = true;
             statsGroup.add(statsMesh);
 
             yOffset -= lineHeight;
@@ -474,8 +566,111 @@ export default class Three {
     );
   }
 
+  setupRaycaster() {
+    this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+    this.canvas.addEventListener('mouseleave', () => {
+      this.tooltip.hide();
+      this.intersectedObject = null;
+    });
+  }
+
+  onMouseMove(event) {
+    this.mouseEvent = event;
+
+    const rect = this.canvas.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  }
+
+  checkIntersection() {
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    if (!this.terrainMesh || !this.mouseEvent) return;
+
+    const intersects = this.raycaster.intersectObject(this.terrainMesh);
+
+    if (this.highlightedMesh) {
+      this.cubeGroup.remove(this.highlightedMesh);
+      this.highlightedMesh.geometry.dispose();
+      this.highlightedMesh.material.dispose();
+      this.highlightedMesh = null;
+    }
+
+    if (intersects.length > 0) {
+      const intersection = intersects[0];
+
+      const position = intersection.point.clone();
+      position.sub(this.cubeGroup.position);
+
+      const { width, height } = this.getDimensions(this.contributions);
+      const gridX = Math.floor((position.x + width / 2) * 2) / 2;
+      const gridZ = Math.floor((position.z + height / 2) * 2) / 2;
+
+      const weekIndex = Math.floor(gridX);
+      const dayIndex = Math.floor(gridZ);
+
+      const contributionIndex = this.contributionData.findIndex(
+        (data) => data.weekIndex === weekIndex && data.dayIndex === dayIndex
+      );
+
+      if (contributionIndex >= 0) {
+        const data = this.contributionData[contributionIndex];
+
+        this.highlightCube(weekIndex, dayIndex, data.level);
+
+        if (this.intersectedObject !== contributionIndex) {
+          this.intersectedObject = contributionIndex;
+
+          const tooltipX = this.mouseEvent.clientX;
+          const tooltipY = this.mouseEvent.clientY;
+
+          this.tooltip.show(tooltipX, tooltipY, data);
+        }
+        return;
+      }
+    }
+
+    if (this.intersectedObject !== null) {
+      this.intersectedObject = null;
+      this.tooltip.hide();
+    }
+  }
+
+  highlightCube(weekIndex, dayIndex, level) {
+    const { width, height } = this.getDimensions(this.contributions);
+    const x = weekIndex - width / 2 + 0.5;
+    const z = dayIndex - height / 2 + 0.5;
+    const y = level * 0.5 + 0.25;
+
+    const cubeSize = 1.1;
+    const geometry = new T.BoxGeometry(cubeSize, cubeSize, cubeSize);
+    const material = new T.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.3,
+      wireframe: true
+    });
+
+    this.highlightedMesh = new T.Mesh(geometry, material);
+    this.highlightedMesh.position.set(x, y + 2.5, z);
+    this.cubeGroup.add(this.highlightedMesh);
+  }
+
   render() {
     if (this.isDisposed) return;
+
+    const elapsedTime = this.clock.getElapsedTime();
+
+    if (this.particles) {
+      this.particles.rotation.y = elapsedTime * 0.02;
+    }
+
+    if (this.controls) {
+      this.controls.update();
+    }
+
+    this.checkIntersection();
+
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));
   }
@@ -499,9 +694,22 @@ export default class Three {
     this.isDisposed = true;
 
     window.removeEventListener('resize', this.onResize.bind(this));
+    this.canvas.removeEventListener('mousemove', this.onMouseMove.bind(this));
+
+    if (this.highlightedMesh) {
+      this.cubeGroup.remove(this.highlightedMesh);
+      this.highlightedMesh.geometry.dispose();
+      this.highlightedMesh.material.dispose();
+      this.highlightedMesh = null;
+    }
 
     if (this.controls) {
       this.controls.dispose();
+    }
+
+    if (this.tooltip) {
+      this.tooltip.dispose();
+      this.tooltip = null;
     }
 
     this.scene.traverse((object) => {
@@ -540,5 +748,6 @@ export default class Three {
     this.directionalLight = null;
     this.terrainMesh = null;
     this.cubeGroup = null;
+    this.particles = null;
   }
 }
