@@ -12,7 +12,7 @@ const device = {
 };
 
 export default class Three {
-  constructor(canvas) {
+  constructor(canvas, contributions) {
     this.canvas = canvas;
 
     this.scene = new T.Scene();
@@ -40,7 +40,7 @@ export default class Three {
     this.clock = new T.Clock();
 
     this.setLights();
-    this.setGeometry();
+    this.setGeometry(contributions);
     this.render();
     this.setResize();
   }
@@ -50,27 +50,36 @@ export default class Three {
     this.scene.add(this.ambientLight);
   }
 
-  setGeometry() {
-    this.planeGeometry = new T.PlaneGeometry(1, 1, 128, 128);
-    this.planeMaterial = new T.ShaderMaterial({
-      side: T.DoubleSide,
-      wireframe: true,
-      fragmentShader: fragment,
-      vertexShader: vertex,
-      uniforms: {
-        progress: { type: 'f', value: 0 }
-      }
-    });
+  setGeometry(contributions) {
+    // Create a group to hold all cubes
+    this.cubeGroup = new T.Group();
+    this.scene.add(this.cubeGroup);
+    
+    console.log(contributions)
 
-    this.planeMesh = new T.Mesh(this.planeGeometry, this.planeMaterial);
-    this.scene.add(this.planeMesh);
+    contributions.forEach((week, weekIndex) => {
+      week.forEach((day, dayIndex) => {
+        const geometry = new T.BoxGeometry(0.1, 0.1 * day, 0.1); // Cube geometry
+        const material = new T.MeshStandardMaterial({
+          color: new T.Color(0, 0.5 + day * 0.1, 0) // More green based on contribution value
+        });
+        const cube = new T.Mesh(geometry, material);
+
+        // Position cubes in a grid-like manner
+        const x = dayIndex * 0.15 - 0.45;
+        const z = weekIndex * 0.15 - 0.45;
+        cube.position.set(x, 0, z); // Scale height based on contribution value
+
+        this.cubeGroup.add(cube); // Add cube to the group
+      });
+    });
   }
 
   render() {
     const elapsedTime = this.clock.getElapsedTime();
 
-    this.planeMesh.rotation.x = 0.2 * elapsedTime;
-    this.planeMesh.rotation.y = 0.1 * elapsedTime;
+    this.cubeGroup.rotation.x = 0.2 * elapsedTime;
+    this.cubeGroup.rotation.y = 0.1 * elapsedTime;
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));

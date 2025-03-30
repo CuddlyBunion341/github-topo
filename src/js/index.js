@@ -3,12 +3,16 @@ import '../scss/global.scss';
 
 import Three from './three';
 
-document.addEventListener('DOMContentLoaded', () => {});
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.querySelector('#canvas');
+    const contributions = generateMockContributions(52, 7);
+    console.log(contributions);
 
-window.addEventListener('load', () => {
-  const canvas = document.querySelector('#canvas');
-
-  if (canvas) {
-    new Three(document.querySelector('#canvas'));
-  }
+    if (canvas) {
+        new Three(canvas, contributions);
+    }
 });
+
+const generateMockContributions = (weeks, days) => {
+    return Array.from({ length: weeks }, () => Array.from({ length: days }, () => Math.floor(Math.random() * 5)));
+}
