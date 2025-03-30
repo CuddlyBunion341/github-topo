@@ -195,14 +195,22 @@ export default class Three {
       neighborWeights.push((1 - cellX) * cellY);
     }
 
-    if (safeX < totalWidth - 1 && safeY < totalHeight - 1 && cellX > 0 && cellY > 0) {
+    if (
+      safeX < totalWidth - 1 &&
+      safeY < totalHeight - 1 &&
+      cellX > 0 &&
+      cellY > 0
+    ) {
       neighborIndices.push(safeY + 1 + (safeX + 1) * totalHeight);
       neighborWeights.push(cellX * cellY);
     }
 
     let computedHeight = 0;
     let computedColor = [0, 0, 0];
-    const totalWeight = neighborWeights.reduce((sum, weight) => sum + weight, 0);
+    const totalWeight = neighborWeights.reduce(
+      (sum, weight) => sum + weight,
+      0
+    );
 
     for (const [weightIndex, neighborIndex] of neighborIndices.entries()) {
       const weight = neighborWeights[weightIndex] / totalWeight;
