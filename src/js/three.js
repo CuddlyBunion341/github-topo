@@ -126,7 +126,7 @@ export default class Three {
     });
 
     const baseMesh = new T.Mesh(base, material);
-    baseMesh.position.set(0, BASE_HEIGHT, 0);
+    baseMesh.position.set(0, BASE_HEIGHT, -height/2);
     this.scene.add(baseMesh);
   }
 
@@ -413,7 +413,7 @@ export default class Three {
         });
 
         const textMesh = new T.Mesh(textGeometry, textMaterial);
-        textMesh.position.set(-textWidth / 2, -2, -7);
+        textMesh.position.set(-textWidth / 2, -2, 4);
         textMesh.castShadow = true;
         pedestalGroup.add(textMesh);
 
