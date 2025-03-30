@@ -1,11 +1,13 @@
 import * as T from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // eslint-disable-line import/no-unresolved
 
 const device = {
   width: window.innerWidth,
   height: window.innerHeight,
   pixelRatio: window.devicePixelRatio
 };
+
+const white = 0xFF_FF_FF; // prettier-ignore
 
 export default class Three {
   constructor(canvas, contributions) {
@@ -31,7 +33,7 @@ export default class Three {
     this.renderer.setSize(device.width, device.height);
     this.renderer.setPixelRatio(Math.min(device.pixelRatio, 2));
 
-    this.renderer.setClearColor(0xFF_FF_FF, 1);
+    this.renderer.setClearColor(white, 1);
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
@@ -50,7 +52,7 @@ export default class Three {
     this.ambientLight = new T.AmbientLight(new T.Color(1, 1, 1, 1));
     this.scene.add(this.ambientLight);
 
-    this.directionalLight = new T.DirectionalLight(0xff_ff_ff, 1);
+    this.directionalLight = new T.DirectionalLight(white, 1);
     this.directionalLight.position.set(5, 5, 5);
     this.directionalLight.castShadow = true;
     this.scene.add(this.directionalLight);
@@ -67,11 +69,26 @@ export default class Three {
     const { width, height } = this.getDimensions(contributions);
     const terrainGeometry = new T.BufferGeometry();
 
-    const { contributionHeights, contributionColors } = this.calculateContributions(contributions, CUBE_SIZE);
+    const { contributionHeights, contributionColors } =
+      this.calculateContributions(contributions, CUBE_SIZE);
 
-    const { topVertices, topColors, topIndices } = this.calculateTopGeometry(width, height, SEGMENT_SIZE, contributionHeights, contributionColors);
+    const { topVertices, topColors, topIndices } = this.calculateTopGeometry(
+      width,
+      height,
+      SEGMENT_SIZE,
+      contributionHeights,
+      contributionColors
+    );
 
-    const { allVertices, allColors, allIndices, baseVertices } = this.calculateBaseGeometry(topVertices, topColors, topIndices, width, height, SEGMENT_SIZE, BASE_HEIGHT);
+    const { allVertices, allColors, allIndices } = this.calculateBaseGeometry(
+      topVertices,
+      topColors,
+      topIndices,
+      width,
+      height,
+      SEGMENT_SIZE,
+      BASE_HEIGHT
+    );
 
     this.createTerrainMesh(terrainGeometry, allVertices, allColors, allIndices);
     this.addGridHelper(width, height, BASE_HEIGHT);
@@ -100,7 +117,13 @@ export default class Three {
     return { contributionHeights, contributionColors };
   }
 
-  calculateTopGeometry(width, height, SEGMENT_SIZE, contributionHeights, contributionColors) {
+  calculateTopGeometry(
+    width,
+    height,
+    SEGMENT_SIZE,
+    contributionHeights,
+    contributionColors
+  ) {
     const topVertices = [];
     const topColors = [];
     const topIndices = [];
@@ -109,7 +132,17 @@ export default class Three {
 
     for (let index = 0; index <= segmentsY; index++) {
       for (let index_ = 0; index_ <= segmentsX; index_++) {
-        const { vertexHeight, color } = this.calculateVertexData(index, index_, segmentsX, segmentsY, width, height, SEGMENT_SIZE, contributionHeights, contributionColors);
+        const { vertexHeight, color } = this.calculateVertexData(
+          index,
+          index_,
+          segmentsX,
+          segmentsY,
+          width,
+          height,
+          SEGMENT_SIZE,
+          contributionHeights,
+          contributionColors
+        );
         const x = (index_ / segmentsX) * width - width / 2;
         const z = (index / segmentsY) * height - height / 2;
 
@@ -132,7 +165,17 @@ export default class Three {
     return { topVertices, topColors, topIndices };
   }
 
-  calculateVertexData(index, index_, segmentsX, segmentsY, width, height, SEGMENT_SIZE, contributionHeights, contributionColors) {
+  calculateVertexData(
+    index,
+    index_,
+    segmentsX,
+    segmentsY,
+    width,
+    height,
+    SEGMENT_SIZE,
+    contributionHeights,
+    contributionColors
+  ) {
     const contributionX = Math.floor(index_ / SEGMENT_SIZE);
     const contributionY = Math.floor(index / SEGMENT_SIZE);
     const safeX = Math.min(contributionX, width - 1);
@@ -176,7 +219,15 @@ export default class Three {
     return { vertexHeight, color };
   }
 
-  calculateBaseGeometry(topVertices, topColors, topIndices, width, height, SEGMENT_SIZE, BASE_HEIGHT) {
+  calculateBaseGeometry(
+    topVertices,
+    topColors,
+    topIndices,
+    width,
+    height,
+    SEGMENT_SIZE,
+    BASE_HEIGHT
+  ) {
     const allVertices = [...topVertices];
     const allColors = [...topColors];
     const allIndices = [...topIndices];
@@ -220,10 +271,18 @@ export default class Three {
     for (let index = 0; index < perimeterIndices.length; index++) {
       const topIndex = perimeterIndices[index];
       const baseIndex = baseVertices[index];
-      const nextTopIndex = perimeterIndices[(index + 1) % perimeterIndices.length];
+      const nextTopIndex =
+        perimeterIndices[(index + 1) % perimeterIndices.length];
       const nextBaseIndex = baseVertices[(index + 1) % baseVertices.length];
 
-      allIndices.push(topIndex, baseIndex, nextTopIndex, baseIndex, nextBaseIndex, nextTopIndex);
+      allIndices.push(
+        topIndex,
+        baseIndex,
+        nextTopIndex,
+        baseIndex,
+        nextBaseIndex,
+        nextTopIndex
+      );
     }
 
     const bottomCenter = allVertices.length / 3;
@@ -241,8 +300,14 @@ export default class Three {
   }
 
   createTerrainMesh(terrainGeometry, allVertices, allColors, allIndices) {
-    terrainGeometry.setAttribute('position', new T.Float32BufferAttribute(allVertices, 3));
-    terrainGeometry.setAttribute('color', new T.Float32BufferAttribute(allColors, 3));
+    terrainGeometry.setAttribute(
+      'position',
+      new T.Float32BufferAttribute(allVertices, 3)
+    );
+    terrainGeometry.setAttribute(
+      'color',
+      new T.Float32BufferAttribute(allColors, 3)
+    );
     terrainGeometry.setIndex(allIndices);
     terrainGeometry.computeVertexNormals();
 
@@ -259,7 +324,10 @@ export default class Three {
   }
 
   addGridHelper(width, height, BASE_HEIGHT) {
-    const gridHelper = new T.GridHelper(Math.max(width, height), Math.max(width, height));
+    const gridHelper = new T.GridHelper(
+      Math.max(width, height),
+      Math.max(width, height)
+    );
     gridHelper.position.y = BASE_HEIGHT + 0.01;
     gridHelper.material.opacity = 0.2;
     gridHelper.material.transparent = true;
