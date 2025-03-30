@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'src/**'
+      - '.github/workflows/validation.yml'
 
 jobs:
   lint:
