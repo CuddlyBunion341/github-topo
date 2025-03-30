@@ -38,6 +38,9 @@ export default class Three {
     // Set background color to white
     this.renderer.setClearColor(0xffffff, 1); // White background
 
+    this.renderer.shadowMap.enabled = true; // Enable shadows
+    this.renderer.shadowMap.type = T.PCFSoftShadowMap; // Optional: set shadow type
+
     this.controls = new OrbitControls(this.camera, this.canvas);
 
     this.clock = new T.Clock();
@@ -51,14 +54,19 @@ export default class Three {
   setLights() {
     this.ambientLight = new T.AmbientLight(new T.Color(1, 1, 1, 1));
     this.scene.add(this.ambientLight);
+
+    // Add a directional light
+    this.directionalLight = new T.DirectionalLight(0xffffff, 1);
+    this.directionalLight.position.set(5, 5, 5); // Position the light
+    this.directionalLight.castShadow = true; // Enable shadow for the light
+    this.scene.add(this.directionalLight);
   }
 
   setGeometry(contributions) {
-    const CUBE_SIZE = 0.1;
-    const CUBE_SPACING = 0.15;
+    const CUBE_SIZE = 0.05;
+    const CUBE_SPACING = 0.01;
     const CUBE_COLOR_BASE = 0.5;
     const CUBE_COLOR_MULTIPLIER = 0.1;
-    const CUBE_CENTER_OFFSET = 0.075;
 
     // Create a group to hold all cubes
     this.cubeGroup = new T.Group();
@@ -70,13 +78,17 @@ export default class Three {
       week.forEach((day, dayIndex) => {
         const geometry = new T.BoxGeometry(CUBE_SIZE, CUBE_SIZE * day, CUBE_SIZE); // Cube geometry
         const material = new T.MeshStandardMaterial({
-          color: new T.Color(0, CUBE_COLOR_BASE + day * CUBE_COLOR_MULTIPLIER, 0) // More green based on contribution value
+          color: new T.Color(0, CUBE_COLOR_BASE + day * CUBE_COLOR_MULTIPLIER, 0), // More green based on contribution value
+          metalness: 0.5, // Add some metalness for a plasticy look
+          roughness: 0.2 // Lower roughness for a smoother, shinier surface
         });
         const cube = new T.Mesh(geometry, material);
+        cube.castShadow = true; // Enable shadow for the cube
+        cube.receiveShadow = true; // Enable receiving shadow
 
         // Position cubes in a grid-like manner, centered in the scene
-        const x = dayIndex * CUBE_SPACING - (week.length * CUBE_SPACING) / 2 + CUBE_CENTER_OFFSET; // Centering the cubes
-        const z = weekIndex * CUBE_SPACING - (contributions.length * CUBE_SPACING) / 2 + CUBE_CENTER_OFFSET; // Centering the cubes
+        const x = (dayIndex * (CUBE_SIZE + CUBE_SPACING)) - (week.length * (CUBE_SIZE + CUBE_SPACING)) / 2 + (CUBE_SIZE / 2); // Centering the cubes considering cube size and spacing
+        const z = (weekIndex * (CUBE_SIZE + CUBE_SPACING)) - (contributions.length * (CUBE_SIZE + CUBE_SPACING)) / 2 + (CUBE_SIZE / 2); // Centering the cubes considering cube size and spacing
         cube.position.set(x, 0, z); // Scale height based on contribution value
 
         this.cubeGroup.add(cube); // Add cube to the group
