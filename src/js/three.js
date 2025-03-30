@@ -151,12 +151,12 @@ export default class Three {
       }
     }
 
-    for (let index = 0; index < segmentsY; index++) {
-      for (let index_ = 0; index_ < segmentsX; index_++) {
-        const a = index_ + (segmentsX + 1) * index;
-        const b = index_ + (segmentsX + 1) * (index + 1);
-        const c = index_ + 1 + (segmentsX + 1) * (index + 1);
-        const d = index_ + 1 + (segmentsX + 1) * index;
+    for (let y = 0; y < segmentsY; y++) {
+      for (let x = 0; x < segmentsX; x++) {
+        const a = x + (segmentsX + 1) * y;
+        const b = x + (segmentsX + 1) * (y + 1);
+        const c = x + 1 + (segmentsX + 1) * (y + 1);
+        const d = x + 1 + (segmentsX + 1) * y;
 
         topIndices.push(a, b, d, b, c, d);
       }
