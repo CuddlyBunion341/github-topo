@@ -47,10 +47,8 @@ export default class Tooltip {
     const dateEl = this.element.querySelector('#tooltip-date');
     const countEl = this.element.querySelector('#tooltip-count');
 
-    // Get the date object
     const date = new Date(data.date);
 
-    // Format date as "Weekday, Month Day, Year"
     dateEl.textContent = `${data.dayName || ''}, ${date.toLocaleDateString(
       'en-US',
       {
@@ -60,11 +58,9 @@ export default class Tooltip {
       }
     )}`;
 
-    // Format contribution count
     const count = data.count || 0;
     countEl.textContent = `${count} contribution${count !== 1 ? 's' : ''}`;
 
-    // Update color based on contribution level
     const colorEl = this.element.querySelector('.tooltip-color-indicator');
     if (count === 0) {
       colorEl.className =
@@ -80,7 +76,6 @@ export default class Tooltip {
         'tooltip-color-indicator h-4 w-4 rounded-full bg-success-700';
     }
 
-    // Show the tooltip
     this.element.classList.remove('hidden');
     this.visible = true;
   }
