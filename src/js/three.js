@@ -21,7 +21,7 @@ export default class Three {
       0.1,
       100
     );
-    this.camera.position.set(0, 0, 2);
+    this.camera.position.set(0, 20, 26);
     this.scene.add(this.camera);
 
     this.renderer = new T.WebGLRenderer({
@@ -208,8 +208,8 @@ export default class Three {
     let color = [0, 0, 0];
     const totalWeight = neighborWeights.reduce((sum, w) => sum + w, 0);
 
-    for (const [index__, neighborIndex] of neighbors.entries()) {
-      const weight = neighborWeights[index__] / totalWeight;
+    for (const [weightIndex, neighborIndex] of neighbors.entries()) {
+      const weight = neighborWeights[weightIndex] / totalWeight;
       vertexHeight += contributionHeights[neighborIndex] * weight;
       color[0] += contributionColors[neighborIndex][0] * weight;
       color[1] += contributionColors[neighborIndex][1] * weight;
