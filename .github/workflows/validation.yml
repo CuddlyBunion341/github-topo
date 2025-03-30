@@ -1,7 +1,8 @@
 name: Lint Code
 on:
   push:
-    branches: ['*']
+    paths:
+      - 'src/**'
 
 jobs:
   lint:
