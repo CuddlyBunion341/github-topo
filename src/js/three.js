@@ -498,46 +498,46 @@ export default class Three {
   dispose() {
     // Stop animation loop
     this.isDisposed = true;
-    
+
     // Remove event listener
     window.removeEventListener('resize', this.onResize.bind(this));
-    
+
     // Dispose of controls
     if (this.controls) {
       this.controls.dispose();
     }
-    
+
     // Dispose of all geometries and materials
     this.scene.traverse((object) => {
       if (object.geometry) {
         object.geometry.dispose();
       }
-      
+
       if (object.material) {
         if (Array.isArray(object.material)) {
-          object.material.forEach((material) => material.dispose());
+          for (const material of object.material) material.dispose();
         } else {
           object.material.dispose();
         }
       }
     });
-    
+
     // Dispose of renderer
     if (this.renderer) {
       this.renderer.dispose();
-      
+
       // Clear canvas
       const context = this.canvas.getContext('webgl');
       if (context) {
         context.getExtension('WEBGL_lose_context')?.loseContext();
       }
     }
-    
+
     // Remove all children from the scene
     while (this.scene.children.length > 0) {
       this.scene.remove(this.scene.children[0]);
     }
-    
+
     // Clear references
     this.scene = null;
     this.camera = null;
