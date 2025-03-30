@@ -39,28 +39,32 @@ export default class Github {
   calculateStats(data) {
     const year = new Date().getFullYear();
     const contributions = data.contributions;
-    
+
     // Filter contributions for the current year
     const yearContributions = contributions.filter(
-      contrib => new Date(contrib.date).getFullYear() === year
+      (contrib) => new Date(contrib.date).getFullYear() === year
     );
-    
+
     // Calculate total contributions
     const totalContributions = yearContributions.reduce(
-      (total, contrib) => total + (contrib.count || contrib.contributionCount || 0), 0
+      (total, contrib) =>
+        total + (contrib.count || contrib.contributionCount || 0),
+      0
     );
-    
+
     // Find day with most contributions
     const maxContribution = yearContributions.reduce(
-      (max, contrib) => Math.max(max, contrib.count || contrib.contributionCount || 0), 0
+      (max, contrib) =>
+        Math.max(max, contrib.count || contrib.contributionCount || 0),
+      0
     );
-    
+
     // Find streak (consecutive days with contributions)
     let currentStreak = 0;
     let longestStreak = 0;
-    
+
     yearContributions.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
+
     for (const contrib of yearContributions) {
       if ((contrib.count || contrib.contributionCount || 0) > 0) {
         currentStreak++;
@@ -69,7 +73,7 @@ export default class Github {
         currentStreak = 0;
       }
     }
-    
+
     return {
       totalContributions,
       maxContribution,
@@ -89,8 +93,12 @@ export default class Github {
         const week = this.getWeekNumber(date);
         const day = date.getDay();
         // Handle different property names for contribution level
-        const level = contribution.level !== undefined ? contribution.level : 
-                     (contribution.contributionLevel !== undefined ? contribution.contributionLevel : 0);
+        const level =
+          contribution.level !== undefined
+            ? contribution.level
+            : contribution.contributionLevel === undefined
+            ? 0
+            : contribution.contributionLevel;
         weeks[week][day] = level;
       }
     }
