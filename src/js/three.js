@@ -10,7 +10,6 @@ const device = {
 };
 
 const white = 0xFF_FF_FF; // prettier-ignore
-const black = 0x00_00_00; // prettier-ignore
 const gray = 0xCC_CC_CC; // prettier-ignore
 const greenBase = 0; // prettier-ignore
 const greenOffset = 0.2; // prettier-ignore
@@ -79,16 +78,19 @@ export default class Three {
     const particleGeometry = new T.BufferGeometry();
     const particleCount = 500;
     const particlePositions = new Float32Array(particleCount * 3);
-    
+
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
       particlePositions[i3] = (Math.random() - 0.5) * 40;
       particlePositions[i3 + 1] = Math.random() * 20 + 5;
       particlePositions[i3 + 2] = (Math.random() - 0.5) * 40;
     }
-    
-    particleGeometry.setAttribute('position', new T.BufferAttribute(particlePositions, 3));
-    
+
+    particleGeometry.setAttribute(
+      'position',
+      new T.BufferAttribute(particlePositions, 3)
+    );
+
     const particleMaterial = new T.PointsMaterial({
       color: 0xffffff,
       size: 0.05,
@@ -96,7 +98,7 @@ export default class Three {
       opacity: 0.6,
       sizeAttenuation: true
     });
-    
+
     this.particles = new T.Points(particleGeometry, particleMaterial);
     this.scene.add(this.particles);
   }
@@ -515,17 +517,17 @@ export default class Three {
 
   render() {
     if (this.isDisposed) return;
-    
+
     const elapsedTime = this.clock.getElapsedTime();
-    
+
     if (this.particles) {
       this.particles.rotation.y = elapsedTime * 0.02;
     }
-    
+
     if (this.controls) {
       this.controls.update();
     }
-    
+
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));
   }
