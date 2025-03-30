@@ -5,6 +5,8 @@
 3D visualization of GitHub contributions using ThreeJS.
 [Live Demo](https://cb341.dev/github-topo/)
 
+Inspired by [0xgaut on Twitter](https://x.com/0xgaut/status/1905669689574887562?t=iBI7WvnhftSh6WiN-khU_Q).
+
 ## Prerequisites
 
 - [Bun](https://bun.sh/) must be installed.
