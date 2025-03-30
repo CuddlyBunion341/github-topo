@@ -1,5 +1,4 @@
 import * as T from 'three';
-// eslint-disable-next-line import/no-unresolved
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import fragment from '../shaders/fragment.glsl';
@@ -35,11 +34,10 @@ export default class Three {
     this.renderer.setSize(device.width, device.height);
     this.renderer.setPixelRatio(Math.min(device.pixelRatio, 2));
     
-    // Set background color to white
-    this.renderer.setClearColor(0xffffff, 1); // White background
+    this.renderer.setClearColor(0xffffff, 1);
 
-    this.renderer.shadowMap.enabled = true; // Enable shadows
-    this.renderer.shadowMap.type = T.PCFSoftShadowMap; // Optional: set shadow type
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = T.PCFSoftShadowMap;
 
     this.controls = new OrbitControls(this.camera, this.canvas);
 
@@ -55,10 +53,9 @@ export default class Three {
     this.ambientLight = new T.AmbientLight(new T.Color(1, 1, 1, 1));
     this.scene.add(this.ambientLight);
 
-    // Add a directional light
     this.directionalLight = new T.DirectionalLight(0xffffff, 1);
-    this.directionalLight.position.set(5, 5, 5); // Position the light
-    this.directionalLight.castShadow = true; // Enable shadow for the light
+    this.directionalLight.position.set(5, 5, 5);
+    this.directionalLight.castShadow = true;
     this.scene.add(this.directionalLight);
   }
 
@@ -68,7 +65,6 @@ export default class Three {
     const CUBE_COLOR_BASE = 0.5;
     const CUBE_COLOR_MULTIPLIER = 0.1;
 
-    // Create a group to hold all cubes
     this.cubeGroup = new T.Group();
     this.scene.add(this.cubeGroup);
     
@@ -77,63 +73,59 @@ export default class Three {
     const width = contributions.length;
     const height = contributions[0].length;
 
-    const geometry = new T.PlaneGeometry(width, height, width, height); // Adjust segments for smoother transitions
+    const geometry = new T.PlaneGeometry(width, height, width, height);
     const material = new T.MeshStandardMaterial({
       wireframe: false,
       flatShading: false,
-      roughness: 0.5, // Adjust roughness for a smoother surface
+      roughness: 0.5,
       vertexColors: true
     });
     this.terrainMesh = new T.Mesh(geometry, material);
     this.cubeGroup.add(this.terrainMesh);
 
-    const heights = []; // Store heights for smooth transitions
-    const colors = []; // Store colors for each vertex
+    const heights = [];
+    const colors = [];
     contributions.forEach((week, weekIndex) => {
       week.forEach((day, dayIndex) => {
-        const height = day * CUBE_SIZE; // Scale height based on contribution value
-        heights[dayIndex + weekIndex * week.length] = height; // Store height for each vertex
+        const height = day * CUBE_SIZE;
+        heights[dayIndex + weekIndex * week.length] = height;
 
-        const colorValue = day / Math.max(...week); // Normalize color based on max value in the week
-        colors.push([0, colorValue, 0]); // Gradient light to dark green
+        const colorValue = day / Math.max(...week);
+        colors.push([0, colorValue, 0]);
       });
     });
 
     const emptyColorArray = new Float32Array(this.terrainMesh.geometry.attributes.position.count * 3);
     this.terrainMesh.geometry.setAttribute('color', new T.Float32BufferAttribute(emptyColorArray, 3));
-    // Update vertex heights with smooth transitions
     for (let weekIndex = 0; weekIndex < contributions.length; weekIndex++) {
       for (let dayIndex = 0; dayIndex < contributions[weekIndex].length; dayIndex++) {
         const vertexIndex = dayIndex + weekIndex * contributions[weekIndex].length;
         const height = heights[vertexIndex];
 
-        // Set the y position of the vertex
         this.terrainMesh.geometry.attributes.position.setZ(vertexIndex, height);
 
-        // Apply a bevel effect by averaging the heights of neighboring vertices
         const neighbors = [
-          heights[vertexIndex - 1], // left
-          heights[vertexIndex + 1], // right
-          heights[vertexIndex - contributions[weekIndex].length], // above
-          heights[vertexIndex + contributions[weekIndex].length] // below
-        ].filter(h => h !== undefined); // Filter out undefined neighbors
+          heights[vertexIndex - 1],
+          heights[vertexIndex + 1],
+          heights[vertexIndex - contributions[weekIndex].length],
+          heights[vertexIndex + contributions[weekIndex].length]
+        ].filter(h => h !== undefined);
 
         if (neighbors.length > 0) {
           const averageHeight = neighbors.reduce((sum, h) => sum + h, 0) / neighbors.length;
-          this.terrainMesh.geometry.attributes.position.setZ(vertexIndex, (height + averageHeight) / 2); // Smooth the height
+          this.terrainMesh.geometry.attributes.position.setZ(vertexIndex, (height + averageHeight) / 2);
           this.terrainMesh.geometry.attributes.color.setXYZ(vertexIndex, ...colors[vertexIndex]);
         }
       }
     }
 
     console.log(this.terrainMesh.geometry.attributes.color)
-    this.terrainMesh.geometry.attributes.position.needsUpdate = true; // Notify Three.js to update the geometry
-    this.terrainMesh.geometry.attributes.color.needsUpdate = true; // Notify Three.js to update the color attribute
+    this.terrainMesh.geometry.attributes.position.needsUpdate = true;
+    this.terrainMesh.geometry.attributes.color.needsUpdate = true;
 
-    // Reposition the geometry to face up
     geometry.rotateX(-Math.PI / 2);
 
-    geometry.computeVertexNormals(); // Recompute normals for lighting
+    geometry.computeVertexNormals();
   }
 
   render() {
