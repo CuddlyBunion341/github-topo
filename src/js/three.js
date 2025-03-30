@@ -360,6 +360,7 @@ export default class Three {
         font: font,
         size: 2,
         height: 0.2,
+        depth: 1,
         curveSegments: 12,
         bevelEnabled: true,
         bevelThickness: 0.05,
@@ -368,9 +369,8 @@ export default class Three {
         bevelSegments: 5
       });
       
-      // textGeometry.computeBoundingBox();
-      // const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-      const textWidth = 2;
+      textGeometry.computeBoundingBox();
+      const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
       
       // Gold-like material for username
       const textMaterial = new T.MeshStandardMaterial({ 
@@ -452,6 +452,7 @@ export default class Three {
             font: font,
             size: 0.3,
             height: 0.03,
+            depth: 1,
             curveSegments: 4,
             bevelEnabled: false
           });
@@ -487,6 +488,7 @@ export default class Three {
         // Create "GitHub" text
         const githubGeometry = new TextGeometry("GitHub", {
           font: font,
+          depth: 1,
           size: 0.25,
           height: 0.05,
           curveSegments: 4,
