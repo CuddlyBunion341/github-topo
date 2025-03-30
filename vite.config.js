@@ -13,7 +13,7 @@ export default {
   base: '/github-topo/',
   server: {
     host: HOST,
-    port: PORT
+    port: PORT,
   },
   plugins: [
     legacy(),

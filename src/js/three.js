@@ -59,9 +59,9 @@ export default class Three {
   }
 
   setGeometry(contributions) {
-    const CUBE_SIZE = 0.5;
+    const CUBE_SIZE = 1;
     const SEGMENT_SIZE = 4;
-    const BASE_HEIGHT = -1;
+    const BASE_HEIGHT = -0.8;
 
     this.cubeGroup = new T.Group();
     this.scene.add(this.cubeGroup);
