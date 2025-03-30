@@ -9,7 +9,7 @@ export default class UsernameForm {
   createFormElement() {
     const container = document.createElement('div');
     container.className =
-      'absolute top-40 right-6 z-10 bg-primary p-4 rounded-xl shadow-lg w-80';
+      'absolute bottom-10 md:bottom-auto md:top-40 left-1/2 -translate-x-1/2 md:left-auto md:right-6 z-10 bg-primary p-4 rounded-xl shadow-lg w-80';
 
     const title = document.createElement('h2');
     title.textContent = 'GitHub Username';
@@ -23,7 +23,7 @@ export default class UsernameForm {
     const input = document.createElement('input');
     input.type = 'text';
     input.placeholder = 'Enter GitHub username';
-    input.className = 'w-full h-10 px-3 rounded-lg';
+    input.className = 'w-full h-10 px-3 rounded-lg bg-white';
     input.id = 'username-input';
     input.value = this.username;
 
