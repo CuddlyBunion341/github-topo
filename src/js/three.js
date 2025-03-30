@@ -62,7 +62,7 @@ export default class Three {
   setGeometry(contributions) {
     const CUBE_SIZE = 0.5;
     const SEGMENT_SIZE = 4; // Segments per contribution cell
-    const SMOOTHING_FACTOR = 0.3; // How much to smooth between contributions (0-1)
+    const BASE_HEIGHT = -1; // Base height for the bottom of the volume
 
     this.cubeGroup = new T.Group();
     this.scene.add(this.cubeGroup);
@@ -70,29 +70,8 @@ export default class Three {
     const width = contributions.length;
     const height = contributions[0].length;
     
-    // Create a higher resolution grid for smoother terrain
-    const geometry = new T.PlaneGeometry(
-      width, 
-      height, 
-      width * SEGMENT_SIZE, 
-      height * SEGMENT_SIZE
-    );
-    
-    const material = new T.MeshStandardMaterial({
-      wireframe: false,
-      flatShading: false,
-      roughness: 0.5,
-      vertexColors: true
-    });
-    
-    this.terrainMesh = new T.Mesh(geometry, material);
-    this.terrainMesh.receiveShadow = true;
-    this.terrainMesh.castShadow = true;
-    this.cubeGroup.add(this.terrainMesh);
-
-    // Initialize color attribute
-    const colorArray = new Float32Array(this.terrainMesh.geometry.attributes.position.count * 3);
-    this.terrainMesh.geometry.setAttribute('color', new T.Float32BufferAttribute(colorArray, 3));
+    // Create BufferGeometry for our 3D volume
+    const terrainGeometry = new T.BufferGeometry();
     
     // Calculate the heights and colors for each contribution cell
     const contributionHeights = [];
@@ -109,14 +88,18 @@ export default class Three {
       });
     });
     
-    // Set heights and colors for all vertices in the high-resolution grid
+    // Generate a higher-res grid for the top surface
+    const topVertices = [];
+    const topColors = [];
+    const topIndices = [];
+    
+    // First, create the vertices for the top surface
     const segmentsX = width * SEGMENT_SIZE;
     const segmentsY = height * SEGMENT_SIZE;
     
-    for (let i = 0; i <= segmentsX; i++) {
-      for (let j = 0; j <= segmentsY; j++) {
-        const vertexIndex = j * (segmentsX + 1) + i;
-        
+    // Create vertices and calculate their heights/colors
+    for (let j = 0; j <= segmentsY; j++) {
+      for (let i = 0; i <= segmentsX; i++) {
         // Map high-res vertex to its contribution cell
         const contributionX = Math.floor(i / SEGMENT_SIZE);
         const contributionY = Math.floor(j / SEGMENT_SIZE);
@@ -159,7 +142,7 @@ export default class Three {
         }
         
         // Calculate interpolated height and color
-        let heightOffset = 0;
+        let vertexHeight = 0;
         let color = [0, 0, 0];
         
         // Normalize weights
@@ -168,8 +151,8 @@ export default class Three {
         neighbors.forEach((neighborIndex, idx) => {
           const weight = neighborWeights[idx] / totalWeight;
           
-          // Apply weight to heightOffset
-          heightOffset += contributionHeights[neighborIndex] * weight;
+          // Apply weight to height
+          vertexHeight += contributionHeights[neighborIndex] * weight;
           
           // Apply weight to color
           color[0] += contributionColors[neighborIndex][0] * weight;
@@ -177,32 +160,126 @@ export default class Three {
           color[2] += contributionColors[neighborIndex][2] * weight;
         });
         
-        // Apply heightOffset to vertex
-        this.terrainMesh.geometry.attributes.position.setZ(vertexIndex, heightOffset);
+        // Calculate normalized position
+        const x = (i / segmentsX) * width - width / 2;
+        const z = (j / segmentsY) * height - height / 2;
         
-        // Apply color to vertex
-        this.terrainMesh.geometry.attributes.color.setXYZ(
-          vertexIndex, 
-          color[0], 
-          color[1], 
-          color[2]
-        );
+        // Add top vertex
+        topVertices.push(x, vertexHeight, z);
+        topColors.push(color[0], color[1], color[2]);
       }
     }
     
-    // Mark geometry as needing updates
-    this.terrainMesh.geometry.attributes.position.needsUpdate = true;
-    this.terrainMesh.geometry.attributes.color.needsUpdate = true;
+    // Create faces (triangles) for the top surface
+    for (let j = 0; j < segmentsY; j++) {
+      for (let i = 0; i < segmentsX; i++) {
+        const a = i + (segmentsX + 1) * j;
+        const b = i + (segmentsX + 1) * (j + 1);
+        const c = (i + 1) + (segmentsX + 1) * (j + 1);
+        const d = (i + 1) + (segmentsX + 1) * j;
+        
+        // First triangle
+        topIndices.push(a, b, d);
+        // Second triangle
+        topIndices.push(b, c, d);
+      }
+    }
     
-    // Rotate to proper orientation
-    geometry.rotateX(-Math.PI / 2);
+    // Now create the side and bottom vertices by extruding the perimeter vertices
+    const allVertices = [...topVertices];
+    const allColors = [...topColors];
+    const allIndices = [...topIndices];
     
-    // Recompute normals for proper lighting
-    geometry.computeVertexNormals();
+    // Get perimeter vertices indices
+    const perimeterIndices = [];
+    
+    // Top edge
+    for (let i = 0; i <= segmentsX; i++) {
+      perimeterIndices.push(i);
+    }
+    
+    // Right edge
+    for (let j = 1; j <= segmentsY; j++) {
+      perimeterIndices.push(segmentsX + j * (segmentsX + 1));
+    }
+    
+    // Bottom edge (reversed)
+    for (let i = segmentsX - 1; i >= 0; i--) {
+      perimeterIndices.push(i + segmentsY * (segmentsX + 1));
+    }
+    
+    // Left edge (reversed)
+    for (let j = segmentsY - 1; j >= 1; j--) {
+      perimeterIndices.push(j * (segmentsX + 1));
+    }
+    
+    // Add base vertices (directly below each perimeter vertex)
+    const baseVertices = [];
+    const verticesCount = topVertices.length / 3;
+    
+    perimeterIndices.forEach((idx) => {
+      const x = topVertices[idx * 3];
+      const z = topVertices[idx * 3 + 2];
+      
+      // Add base vertex
+      allVertices.push(x, BASE_HEIGHT, z);
+      
+      // Use a darker version of the top color for the base
+      const r = topColors[idx * 3] * 0.5;
+      const g = topColors[idx * 3 + 1] * 0.5;
+      const b = topColors[idx * 3 + 2] * 0.5;
+      allColors.push(r, g, b);
+      
+      // Store the new index
+      baseVertices.push(verticesCount + baseVertices.length);
+    });
+    
+    // Create side faces
+    for (let i = 0; i < perimeterIndices.length; i++) {
+      const topIdx = perimeterIndices[i];
+      const baseIdx = baseVertices[i];
+      const nextTopIdx = perimeterIndices[(i + 1) % perimeterIndices.length];
+      const nextBaseIdx = baseVertices[(i + 1) % baseVertices.length];
+      
+      // Add two triangles to create a quad for each side segment
+      allIndices.push(topIdx, baseIdx, nextTopIdx);
+      allIndices.push(baseIdx, nextBaseIdx, nextTopIdx);
+    }
+    
+    // Create bottom face
+    const bottomCenter = allVertices.length / 3;
+    allVertices.push(0, BASE_HEIGHT, 0);
+    allColors.push(0, 0.1, 0); // Dark green for bottom center
+    
+    for (let i = 0; i < baseVertices.length; i++) {
+      const currentIdx = baseVertices[i];
+      const nextIdx = baseVertices[(i + 1) % baseVertices.length];
+      
+      // Create triangle from center to two adjacent base vertices
+      allIndices.push(bottomCenter, nextIdx, currentIdx);
+    }
+    
+    // Create the buffer geometry
+    terrainGeometry.setAttribute('position', new T.Float32BufferAttribute(allVertices, 3));
+    terrainGeometry.setAttribute('color', new T.Float32BufferAttribute(allColors, 3));
+    terrainGeometry.setIndex(allIndices);
+    terrainGeometry.computeVertexNormals();
+    
+    // Create mesh with the geometry
+    const material = new T.MeshStandardMaterial({
+      vertexColors: true,
+      side: T.DoubleSide,
+      roughness: 0.5
+    });
+    
+    this.terrainMesh = new T.Mesh(terrainGeometry, material);
+    this.terrainMesh.receiveShadow = true;
+    this.terrainMesh.castShadow = true;
+    this.cubeGroup.add(this.terrainMesh);
     
     // Add grid lines to visualize contribution boundaries
     const gridHelper = new T.GridHelper(Math.max(width, height), Math.max(width, height));
-    gridHelper.position.y = -0.01; // Slightly below the terrain to avoid z-fighting
+    gridHelper.position.y = BASE_HEIGHT + 0.01; // Just above the bottom
     gridHelper.material.opacity = 0.2;
     gridHelper.material.transparent = true;
     this.cubeGroup.add(gridHelper);
