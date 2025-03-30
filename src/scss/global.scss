@@ -42,8 +42,7 @@
 // Username form styles
 #username-form {
   input {
-    background-color: var(--primary);
-    color: var(--color);
+    color: var(--primary);
     border-color: var(--accent-primary);
     transition: all 0.2s ease-in-out;
     
@@ -53,7 +52,7 @@
     }
     
     &::placeholder {
-      color: var(--color);
+      color: var(--primary);
       opacity: 0.5;
     }
   }
