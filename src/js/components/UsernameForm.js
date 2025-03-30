@@ -7,23 +7,19 @@ export default class UsernameForm {
   }
 
   createFormElement() {
-    // Create container for the form
     const container = document.createElement('div');
     container.className =
       'absolute top-20 right-6 z-10 bg-primary p-4 rounded-xl shadow-lg w-80';
 
-    // Create form title
     const title = document.createElement('h2');
     title.textContent = 'GitHub Username';
     title.className = 'text-lg font-semibold mb-3 text-center text-color';
     container.append(title);
 
-    // Create form element
     const form = document.createElement('form');
     form.className = 'flex flex-col gap-3';
     form.id = 'username-form';
 
-    // Add username input
     const input = document.createElement('input');
     input.type = 'text';
     input.placeholder = 'Enter GitHub username';
@@ -33,7 +29,6 @@ export default class UsernameForm {
 
     form.append(input);
 
-    // Add submit button
     const button = document.createElement('button');
     button.type = 'submit';
     button.textContent = 'Visualize';
@@ -42,7 +37,6 @@ export default class UsernameForm {
     form.append(button);
     container.append(form);
 
-    // Add loading indicator (hidden by default)
     const loadingIndicator = document.createElement('div');
     loadingIndicator.className = 'hidden mt-2 text-center text-color text-sm';
     loadingIndicator.id = 'loading-indicator';
@@ -65,7 +59,6 @@ export default class UsernameForm {
       }
     });
 
-    // Update local username value on input
     input.addEventListener('input', (e) => {
       this.username = e.target.value.trim();
     });
