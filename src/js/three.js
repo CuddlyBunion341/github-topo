@@ -362,7 +362,7 @@ export default class Three {
     this.terrainMesh = new T.Mesh(terrainGeometry, material);
     this.terrainMesh.receiveShadow = true;
     this.terrainMesh.castShadow = true;
-    this.terrainMesh.position.y = 2.5;
+    this.terrainMesh.position.y = 4;
     this.cubeGroup.add(this.terrainMesh);
   }
 
@@ -389,18 +389,17 @@ export default class Three {
         // Create main pedestal group
         const pedestalGroup = new T.Group();
         this.scene.add(pedestalGroup);
-        pedestalGroup.position.set(0, 0, 11);
+        pedestalGroup.position.set(0, 0, 2.9);
 
         // Username nameplate
         const textGeometry = new TextGeometry(this.username, {
           font: font,
-          size: 2,
-          height: 0.2,
+          size: 0.5,
           depth: 1,
           curveSegments: 12,
           bevelEnabled: true,
-          bevelThickness: 0.05,
-          bevelSize: 0.1,
+          bevelThickness: 0.01,
+          bevelSize: 0.01,
           bevelOffset: 0,
           bevelSegments: 5
         });
@@ -411,13 +410,13 @@ export default class Three {
 
         // Gold-like material for username
         const textMaterial = new T.MeshStandardMaterial({
-          color: 0xFF_FF_FF,
+          color: 0x000000,
           metalness: 0,
-          roughness: 0
+          roughness: 1
         });
 
         const textMesh = new T.Mesh(textGeometry, textMaterial);
-        textMesh.position.set(-textWidth / 2, 0, 0);
+        textMesh.position.set(-textWidth / 2, 1.3, 0);
         textMesh.castShadow = true;
         pedestalGroup.add(textMesh);
 
@@ -425,18 +424,17 @@ export default class Three {
         if (this.stats) {
           // Container for stats
           const statsGroup = new T.Group();
-          statsGroup.position.set(0, -2.2, -5.7);
+          statsGroup.position.set(0, 0, 0);
           pedestalGroup.add(statsGroup);
 
           // Create statistics display with multiple lines
           const statLines = [
             `Total Contributions: ${this.stats.totalContributions}`,
             `Longest Streak: ${this.stats.longestStreak} days`,
-            `Max in One Day: ${this.stats.maxContribution}`
           ];
 
-          let yOffset = 0;
-          const lineHeight = 0.4;
+          let yOffset = 0.7;
+          const lineHeight = 0.5;
 
           for (const line of statLines) {
             const statsGeometry = new TextGeometry(line, {
@@ -464,42 +462,6 @@ export default class Three {
 
             yOffset -= lineHeight;
           }
-
-          // Add a GitHub logo or icon
-          const logoGeometry = new T.CircleGeometry(0.4, 32);
-          const logoMaterial = new T.MeshStandardMaterial({
-            color: 0xFF_FF_FF,
-            metalness: 0.5,
-            roughness: 0.2
-          });
-
-          const logo = new T.Mesh(logoGeometry, logoMaterial);
-          logo.position.set(0, 0.8, 0);
-          statsGroup.add(logo);
-
-          // Create "GitHub" text
-          const githubGeometry = new TextGeometry('GitHub', {
-            font: font,
-            depth: 1,
-            size: 0.25,
-            height: 0.05,
-            curveSegments: 4,
-            bevelEnabled: false
-          });
-
-          githubGeometry.computeBoundingBox();
-          const githubWidth =
-            githubGeometry.boundingBox.max.x - githubGeometry.boundingBox.min.x;
-
-          const githubMaterial = new T.MeshStandardMaterial({
-            color: 0xFF_FF_FF,
-            metalness: 0.6,
-            roughness: 0.2
-          });
-
-          const githubMesh = new T.Mesh(githubGeometry, githubMaterial);
-          githubMesh.position.set(-githubWidth / 2, 0.3, 0);
-          statsGroup.add(githubMesh);
         }
 
         // Adjust camera position for better view
