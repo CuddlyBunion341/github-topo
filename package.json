@@ -1,23 +1,18 @@
 {
   "private": true,
   "author": {
-    "name": "Doinel Atanasiu",
-    "email": "doinel1atanasiu@gmail.com",
-    "url": "https://business-link.d1a.app"
+    "name": "CuddlyBunion341",
+    "email": "cuddlybunion341@gmail.com",
+    "url": "https://github.com/CuddlyBunion341"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/doinel1a/vite-three-js"
+    "url": "https://github.com/CuddlyBunion341/github-topo"
   },
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "postinstall": "husky & playwright install",
     "clean:dist": "npx rimraf dist",
-    "clean:report": "npx rimraf playwright-report",
-    "test:chrome": "npx playwright test --headed --project=chromium",
-    "test:firefox": "npx playwright test --headed --project=firefox",
-    "test:safari": "npx playwright test --headed --project=webkit",
     "lint": "npx eslint --ext js ./src",
     "lint:fix": "npx eslint --ext js ./src --fix",
     "dev": "vite --host",
@@ -43,7 +38,6 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sonarjs": "^0.25.1",
     "eslint-plugin-unicorn": "^56.0.1",
-    "husky": "^9.1.7",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",

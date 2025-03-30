@@ -10,6 +10,7 @@ const HOST = _config.server.host;
 const PORT = _config.server.port;
 
 export default {
+  base: '/github-topo/',
   server: {
     host: HOST,
     port: PORT
