@@ -135,8 +135,6 @@ export default class Three {
         const { vertexHeight, color } = this.calculateVertexData(
           index,
           index_,
-          segmentsX,
-          segmentsY,
           width,
           height,
           SEGMENT_SIZE,
@@ -166,57 +164,55 @@ export default class Three {
   }
 
   calculateVertexData(
-    index,
-    index_,
-    segmentsX,
-    segmentsY,
-    width,
-    height,
-    SEGMENT_SIZE,
-    contributionHeights,
-    contributionColors
+    rowIndex,
+    columnIndex,
+    totalWidth,
+    totalHeight,
+    segmentSize,
+    heightContributions,
+    colorContributions
   ) {
-    const contributionX = Math.floor(index_ / SEGMENT_SIZE);
-    const contributionY = Math.floor(index / SEGMENT_SIZE);
-    const safeX = Math.min(contributionX, width - 1);
-    const safeY = Math.min(contributionY, height - 1);
-    const contributionIndex = safeY + safeX * height;
-    const cellX = (index_ % SEGMENT_SIZE) / SEGMENT_SIZE;
-    const cellY = (index % SEGMENT_SIZE) / SEGMENT_SIZE;
+    const contributionX = Math.floor(columnIndex / segmentSize);
+    const contributionY = Math.floor(rowIndex / segmentSize);
+    const safeX = Math.min(contributionX, totalWidth - 1);
+    const safeY = Math.min(contributionY, totalHeight - 1);
+    const contributionIndex = safeY + safeX * totalHeight;
+    const cellX = (columnIndex % segmentSize) / segmentSize;
+    const cellY = (rowIndex % segmentSize) / segmentSize;
 
-    const neighbors = [];
+    const neighborIndices = [];
     const neighborWeights = [];
-    neighbors.push(contributionIndex);
+    neighborIndices.push(contributionIndex);
     neighborWeights.push((1 - cellX) * (1 - cellY));
 
-    if (safeX < width - 1 && cellX > 0) {
-      neighbors.push(safeY + (safeX + 1) * height);
+    if (safeX < totalWidth - 1 && cellX > 0) {
+      neighborIndices.push(safeY + (safeX + 1) * totalHeight);
       neighborWeights.push(cellX * (1 - cellY));
     }
 
-    if (safeY < height - 1 && cellY > 0) {
-      neighbors.push(safeY + 1 + safeX * height);
+    if (safeY < totalHeight - 1 && cellY > 0) {
+      neighborIndices.push(safeY + 1 + safeX * totalHeight);
       neighborWeights.push((1 - cellX) * cellY);
     }
 
-    if (safeX < width - 1 && safeY < height - 1 && cellX > 0 && cellY > 0) {
-      neighbors.push(safeY + 1 + (safeX + 1) * height);
+    if (safeX < totalWidth - 1 && safeY < totalHeight - 1 && cellX > 0 && cellY > 0) {
+      neighborIndices.push(safeY + 1 + (safeX + 1) * totalHeight);
       neighborWeights.push(cellX * cellY);
     }
 
-    let vertexHeight = 0;
-    let color = [0, 0, 0];
-    const totalWeight = neighborWeights.reduce((sum, w) => sum + w, 0);
+    let computedHeight = 0;
+    let computedColor = [0, 0, 0];
+    const totalWeight = neighborWeights.reduce((sum, weight) => sum + weight, 0);
 
-    for (const [weightIndex, neighborIndex] of neighbors.entries()) {
+    for (const [weightIndex, neighborIndex] of neighborIndices.entries()) {
       const weight = neighborWeights[weightIndex] / totalWeight;
-      vertexHeight += contributionHeights[neighborIndex] * weight;
-      color[0] += contributionColors[neighborIndex][0] * weight;
-      color[1] += contributionColors[neighborIndex][1] * weight;
-      color[2] += contributionColors[neighborIndex][2] * weight;
+      computedHeight += heightContributions[neighborIndex] * weight;
+      computedColor[0] += colorContributions[neighborIndex][0] * weight;
+      computedColor[1] += colorContributions[neighborIndex][1] * weight;
+      computedColor[2] += colorContributions[neighborIndex][2] * weight;
     }
 
-    return { vertexHeight, color };
+    return { vertexHeight: computedHeight, color: computedColor };
   }
 
   calculateBaseGeometry(
