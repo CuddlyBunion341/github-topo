@@ -1,20 +1,15 @@
 import '../css/global.css';
 import '../scss/global.scss';
 
+import Github from './github';
 import Three from './three';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.querySelector('#canvas');
-  const contributions = generateMockContributions(52, 7);
-  console.log(contributions);
+  const github = new Github('CuddlyBunion341');
+  const contributions = await github.getContributions();
 
   if (canvas) {
     new Three(canvas, contributions);
   }
 });
-
-const generateMockContributions = (weeks, days) => {
-  return Array.from({ length: weeks }, () =>
-    Array.from({ length: days }, () => Math.floor(Math.random() * 5))
-  );
-};
