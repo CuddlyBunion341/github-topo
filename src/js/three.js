@@ -67,7 +67,7 @@ export default class Three {
   setGeometry(contributions) {
     const CUBE_SIZE = 1;
     const SEGMENT_SIZE = 4;
-    const BASE_HEIGHT = -0.8;
+    const BASE_HEIGHT = -1.5;
 
     this.cubeGroup = new T.Group();
     this.scene.add(this.cubeGroup);
@@ -96,12 +96,14 @@ export default class Three {
       BASE_HEIGHT
     );
 
-    this.createContributionsBase(width + 1, 0.5, height + 1, BASE_HEIGHT);
+    const basePadding = 0.5;
+
+    this.createContributionsBase(width + basePadding, 2, height + basePadding, BASE_HEIGHT);
     this.createTerrainMesh(terrainGeometry, allVertices, allColors, allIndices);
-    this.addGridHelper(width, height, BASE_HEIGHT);
+    this.addGridHelper(width, height);
   }
 
-  createContributionsBase(width, depth, height, BASE_HEIGHT) {
+  createContributionsBase(width, depth, height) {
     const shape = new T.Shape();
     shape.moveTo(-width / 2, -depth / 2);
     shape.lineTo(width / 2, -depth / 2);
@@ -120,13 +122,13 @@ export default class Three {
 
     const base = new T.ExtrudeGeometry(shape, extrudeSettings);
     const material = new T.MeshStandardMaterial({
-      color: 0x1A_1A_1A,
-      metalness: 0.9,
+      color: 0xffffff,
+      metalness: 0,
       roughness: 0
     });
 
     const baseMesh = new T.Mesh(base, material);
-    baseMesh.position.set(0, BASE_HEIGHT, -height/2);
+    baseMesh.position.set(0, depth/2, -height/2);
     this.scene.add(baseMesh);
   }
 
@@ -360,15 +362,16 @@ export default class Three {
     this.terrainMesh = new T.Mesh(terrainGeometry, material);
     this.terrainMesh.receiveShadow = true;
     this.terrainMesh.castShadow = true;
+    this.terrainMesh.position.y = 2.5;
     this.cubeGroup.add(this.terrainMesh);
   }
 
-  addGridHelper(width, height, BASE_HEIGHT) {
+  addGridHelper(width, height) {
     const gridHelper = new T.GridHelper(
       Math.max(width, height),
       Math.max(width, height)
     );
-    gridHelper.position.y = BASE_HEIGHT + 0.01;
+    gridHelper.position.y = 0;
     gridHelper.material.opacity = 0.2;
     gridHelper.material.transparent = true;
     this.cubeGroup.add(gridHelper);
@@ -386,6 +389,7 @@ export default class Three {
         // Create main pedestal group
         const pedestalGroup = new T.Group();
         this.scene.add(pedestalGroup);
+        pedestalGroup.position.set(0, 0, 11);
 
         // Username nameplate
         const textGeometry = new TextGeometry(this.username, {
@@ -413,67 +417,9 @@ export default class Three {
         });
 
         const textMesh = new T.Mesh(textGeometry, textMaterial);
-        textMesh.position.set(-textWidth / 2, -2, 4);
+        textMesh.position.set(-textWidth / 2, 0, 0);
         textMesh.castShadow = true;
         pedestalGroup.add(textMesh);
-
-        // Create pedestal base (3-tier design)
-        const pedestalWidth = Math.max(textWidth + 6, 12);
-        const pedestalDepth = 1;
-
-        // Bottom tier (largest)
-        const bottomTierGeometry = new T.BoxGeometry(
-          pedestalWidth,
-          0.5,
-          pedestalDepth
-        );
-        const pedestalMaterial = new T.MeshStandardMaterial({
-          color: 0x22_22_22,
-          metalness: 0.6,
-          roughness: 0.2
-        });
-
-        const bottomTier = new T.Mesh(bottomTierGeometry, pedestalMaterial);
-        bottomTier.position.set(0, -3, -7);
-        bottomTier.castShadow = true;
-        bottomTier.receiveShadow = true;
-        pedestalGroup.add(bottomTier);
-
-        // Middle tier
-        const middleTierGeometry = new T.BoxGeometry(
-          pedestalWidth * 0.9,
-          0.4,
-          pedestalDepth * 0.9
-        );
-        const middleTier = new T.Mesh(middleTierGeometry, pedestalMaterial);
-        middleTier.position.set(0, -2.55, -7);
-        middleTier.castShadow = true;
-        middleTier.receiveShadow = true;
-        pedestalGroup.add(middleTier);
-
-        // Top tier
-        const topTierGeometry = new T.BoxGeometry(
-          pedestalWidth * 0.8,
-          0.3,
-          pedestalDepth * 0.8
-        );
-        const topTierMaterial = new T.MeshStandardMaterial({
-          color: 0x33_33_33,
-          metalness: 0.7,
-          roughness: 0.2
-        });
-
-        const topTier = new T.Mesh(topTierGeometry, topTierMaterial);
-        topTier.position.set(0, -2.2, -7);
-        topTier.castShadow = true;
-        topTier.receiveShadow = true;
-        pedestalGroup.add(topTier);
-
-        // Add decorative edge lighting
-        // const edgeLight = new T.RectAreaLight(0x6a89cc, 2, pedestalWidth * 0.8, 0.1);
-        // edgeLight.position.set(0, -2.05, -7);
-        // edgeLight.rotation.x = -Math.PI / 2;
-        // pedestalGroup.add(edgeLight);
 
         // Add statistics display if available
         if (this.stats) {
