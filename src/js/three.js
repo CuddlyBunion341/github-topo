@@ -2,6 +2,7 @@ import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // eslint-disable-line import/no-unresolved
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js'; // eslint-disable-line import/no-unresolved
 import { FontLoader } from 'three/addons/loaders/FontLoader.js'; // eslint-disable-line import/no-unresolved
+
 import Tooltip from './components/Tooltip.js';
 
 const device = {
@@ -162,43 +163,35 @@ export default class Three {
   preprocessContributionData(contributions) {
     this.contributionData = [];
     const currentYear = new Date().getFullYear();
-    const startDate = new Date(currentYear, 0, 1); // January 1st of current year
-    
-    // Adjust startDate to the first Sunday of the contribution grid
+    const startDate = new Date(currentYear, 0, 1);
+
     const dayOfWeek = startDate.getDay();
     if (dayOfWeek > 0) {
-      // If the first day of the year is not Sunday, go back to the previous Sunday
       startDate.setDate(startDate.getDate() - dayOfWeek);
     }
-    
-    // Get actual contribution levels from GitHub data
+
     const { width, height } = this.getDimensions(contributions);
-    
+
     for (let weekIndex = 0; weekIndex < width; weekIndex++) {
       const week = contributions[weekIndex];
       for (let dayIndex = 0; dayIndex < height; dayIndex++) {
         const level = week[dayIndex];
-        
-        // Calculate the date for this contribution
+
         const dayDate = new Date(startDate);
-        dayDate.setDate(startDate.getDate() + (weekIndex * 7) + dayIndex);
-        
-        // Determine count based on level (0-4)
-        // Level mapping: 0=0, 1=1-3, 2=4-6, 3=7-9, 4=10+
+        dayDate.setDate(startDate.getDate() + weekIndex * 7 + dayIndex);
+
         let count = 0;
-        if (level === 1) count = 2;  // Low
-        else if (level === 2) count = 5;  // Medium
-        else if (level === 3) count = 8;  // High
-        else if (level === 4) count = 12; // Very high
-        
-        // Store the contribution data for raycasting
+        if (level === 1) count = 2;
+        else if (level === 2) count = 5;
+        else if (level === 3) count = 8;
+        else if (level === 4) count = 12;
+
         this.contributionData.push({
           weekIndex,
           dayIndex,
           level,
           date: dayDate.toISOString().split('T')[0],
           count,
-          // Add day name for better tooltip display
           dayName: dayDate.toLocaleDateString('en-US', { weekday: 'long' })
         });
       }
@@ -574,7 +567,6 @@ export default class Three {
   }
 
   setupRaycaster() {
-    // Add mouse move event listener for raycasting
     this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
     this.canvas.addEventListener('mouseleave', () => {
       this.tooltip.hide();
@@ -583,90 +575,74 @@ export default class Three {
   }
 
   onMouseMove(event) {
-    // Store the mouse event for tooltip positioning
     this.mouseEvent = event;
-    
-    // Calculate mouse position in normalized device coordinates (-1 to +1)
+
     const rect = this.canvas.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   }
 
   checkIntersection() {
-    // Update the raycaster with the camera and mouse position
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    
-    // Only cast rays against the terrain mesh
+
     if (!this.terrainMesh || !this.mouseEvent) return;
-    
+
     const intersects = this.raycaster.intersectObject(this.terrainMesh);
-    
-    // Remove previous highlight if it exists
+
     if (this.highlightedMesh) {
       this.cubeGroup.remove(this.highlightedMesh);
       this.highlightedMesh.geometry.dispose();
       this.highlightedMesh.material.dispose();
       this.highlightedMesh = null;
     }
-    
+
     if (intersects.length > 0) {
-      // Get the first intersection
       const intersection = intersects[0];
-      
-      // Calculate which contribution cube was intersected based on position
+
       const position = intersection.point.clone();
-      position.sub(this.cubeGroup.position); // Account for group position
-      
-      // Convert world position to grid coordinates
+      position.sub(this.cubeGroup.position);
+
       const { width, height } = this.getDimensions(this.contributions);
       const gridX = Math.floor((position.x + width / 2) * 2) / 2;
       const gridZ = Math.floor((position.z + height / 2) * 2) / 2;
-      
-      // Map to week and day indices
+
       const weekIndex = Math.floor(gridX);
       const dayIndex = Math.floor(gridZ);
-      
-      // Find the contribution data for this cube
+
       const contributionIndex = this.contributionData.findIndex(
-        data => data.weekIndex === weekIndex && data.dayIndex === dayIndex
+        (data) => data.weekIndex === weekIndex && data.dayIndex === dayIndex
       );
-      
+
       if (contributionIndex >= 0) {
         const data = this.contributionData[contributionIndex];
-        
-        // Highlight the cube
+
         this.highlightCube(weekIndex, dayIndex, data.level);
-        
-        // We have a valid contribution intersection
+
         if (this.intersectedObject !== contributionIndex) {
           this.intersectedObject = contributionIndex;
-          
-          // Show tooltip at mouse cursor position
+
           const tooltipX = this.mouseEvent.clientX;
           const tooltipY = this.mouseEvent.clientY;
-          
+
           this.tooltip.show(tooltipX, tooltipY, data);
         }
         return;
       }
     }
-    
-    // No intersection or invalid contribution
+
     if (this.intersectedObject !== null) {
       this.intersectedObject = null;
       this.tooltip.hide();
     }
   }
-  
+
   highlightCube(weekIndex, dayIndex, level) {
-    // Calculate position based on grid coordinates
     const { width, height } = this.getDimensions(this.contributions);
     const x = weekIndex - width / 2 + 0.5;
     const z = dayIndex - height / 2 + 0.5;
-    const y = level * 0.5 + 0.25; // Half the height plus small offset
-    
-    // Create highlighted cube
-    const cubeSize = 1.1; // Slightly larger than the terrain cubes
+    const y = level * 0.5 + 0.25;
+
+    const cubeSize = 1.1;
     const geometry = new T.BoxGeometry(cubeSize, cubeSize, cubeSize);
     const material = new T.MeshBasicMaterial({
       color: 0xffffff,
@@ -674,9 +650,9 @@ export default class Three {
       opacity: 0.3,
       wireframe: true
     });
-    
+
     this.highlightedMesh = new T.Mesh(geometry, material);
-    this.highlightedMesh.position.set(x, y + 2.5, z); // Add offset to match terrain position
+    this.highlightedMesh.position.set(x, y + 2.5, z);
     this.cubeGroup.add(this.highlightedMesh);
   }
 
@@ -693,7 +669,6 @@ export default class Three {
       this.controls.update();
     }
 
-    // Check for intersections
     this.checkIntersection();
 
     this.renderer.render(this.scene, this.camera);
