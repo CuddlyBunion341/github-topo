@@ -390,20 +390,16 @@ export default class Three {
   }
 
   addNameplate() {
-    // Create a loading manager to track when all resources are loaded
     const loadManager = new T.LoadingManager();
 
-    // Load font
     const fontLoader = new FontLoader(loadManager);
     fontLoader.load(
       'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json',
       (font) => {
-        // Create main pedestal group
         const pedestalGroup = new T.Group();
         this.scene.add(pedestalGroup);
         pedestalGroup.position.set(0, 0, 2.9);
 
-        // Username nameplate
         const textGeometry = new TextGeometry(this.username, {
           font: font,
           size: 0.5,
@@ -420,7 +416,6 @@ export default class Three {
         const textWidth =
           textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
 
-        // Gold-like material for username
         const textMaterial = new T.MeshStandardMaterial({
           color: black,
           metalness: 0,
@@ -432,14 +427,11 @@ export default class Three {
         textMesh.castShadow = true;
         pedestalGroup.add(textMesh);
 
-        // Add statistics display if available
         if (this.stats) {
-          // Container for stats
           const statsGroup = new T.Group();
           statsGroup.position.set(0, 0, 0);
           pedestalGroup.add(statsGroup);
 
-          // Create statistics display with multiple lines
           const statLines = [
             `Total Contributions: ${this.stats.totalContributions}`,
             `Longest Streak: ${this.stats.longestStreak} days`
@@ -476,7 +468,6 @@ export default class Three {
           }
         }
 
-        // Adjust camera position for better view
         this.camera.position.set(0, 15, 26);
         this.controls.update();
       }
