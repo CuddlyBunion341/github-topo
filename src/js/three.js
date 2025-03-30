@@ -22,6 +22,8 @@ export default class Three {
     this.stats = stats;
 
     this.scene = new T.Scene();
+    this.scene.background = new T.Color(0xf5f5f5);
+    this.scene.fog = new T.Fog(0xf5f5f5, 20, 100);
 
     this.camera = new T.PerspectiveCamera(
       75,
@@ -47,12 +49,15 @@ export default class Three {
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
 
     this.controls = new OrbitControls(this.camera, this.canvas);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.05;
 
     this.clock = new T.Clock();
 
     this.setLights();
     this.setGeometry(contributions);
     this.addNameplate();
+    this.addEnvironment();
     this.render();
     this.setResize();
   }
@@ -65,6 +70,35 @@ export default class Three {
     this.directionalLight.position.set(5, 5, 5);
     this.directionalLight.castShadow = true;
     this.scene.add(this.directionalLight);
+  }
+
+  addEnvironment() {
+    const hemisphereLight = new T.HemisphereLight(0xffffff, 0x404040, 0.6);
+    this.scene.add(hemisphereLight);
+
+    const particleGeometry = new T.BufferGeometry();
+    const particleCount = 500;
+    const particlePositions = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      particlePositions[i3] = (Math.random() - 0.5) * 40;
+      particlePositions[i3 + 1] = Math.random() * 20 + 5;
+      particlePositions[i3 + 2] = (Math.random() - 0.5) * 40;
+    }
+    
+    particleGeometry.setAttribute('position', new T.BufferAttribute(particlePositions, 3));
+    
+    const particleMaterial = new T.PointsMaterial({
+      color: 0xffffff,
+      size: 0.05,
+      transparent: true,
+      opacity: 0.6,
+      sizeAttenuation: true
+    });
+    
+    this.particles = new T.Points(particleGeometry, particleMaterial);
+    this.scene.add(this.particles);
   }
 
   setGeometry(contributions) {
@@ -417,14 +451,17 @@ export default class Three {
           textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
 
         const textMaterial = new T.MeshStandardMaterial({
-          color: black,
-          metalness: 0,
-          roughness: 1
+          color: 0x2c3e50,
+          metalness: 0.7,
+          roughness: 0.3,
+          emissive: 0x0c1e30,
+          emissiveIntensity: 0.2
         });
 
         const textMesh = new T.Mesh(textGeometry, textMaterial);
         textMesh.position.set(-textWidth / 2, 1.3, 0);
         textMesh.castShadow = true;
+        textMesh.receiveShadow = true;
         pedestalGroup.add(textMesh);
 
         if (this.stats) {
@@ -462,6 +499,8 @@ export default class Three {
 
             const statsMesh = new T.Mesh(statsGeometry, statsMaterial);
             statsMesh.position.set(-statsWidth / 2, yOffset, 0);
+            statsMesh.castShadow = true;
+            statsMesh.receiveShadow = true;
             statsGroup.add(statsMesh);
 
             yOffset -= lineHeight;
@@ -476,6 +515,17 @@ export default class Three {
 
   render() {
     if (this.isDisposed) return;
+    
+    const elapsedTime = this.clock.getElapsedTime();
+    
+    if (this.particles) {
+      this.particles.rotation.y = elapsedTime * 0.02;
+    }
+    
+    if (this.controls) {
+      this.controls.update();
+    }
+    
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render.bind(this));
   }
@@ -540,5 +590,6 @@ export default class Three {
     this.directionalLight = null;
     this.terrainMesh = null;
     this.cubeGroup = null;
+    this.particles = null;
   }
 }
