@@ -362,7 +362,7 @@ export default class Three {
     this.terrainMesh = new T.Mesh(terrainGeometry, material);
     this.terrainMesh.receiveShadow = true;
     this.terrainMesh.castShadow = true;
-    this.terrainMesh.position.y = 4;
+    this.terrainMesh.position.y = 2.5;
     this.cubeGroup.add(this.terrainMesh);
   }
 
