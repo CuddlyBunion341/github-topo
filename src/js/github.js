@@ -44,20 +44,14 @@ export default class Github {
     const yearContributions = contributions.filter(
       (contrib) => new Date(contrib.date).getFullYear() === year
     );
+    let totalContributions = 0;
+    let maxContribution = 0;
 
-    // Calculate total contributions
-    const totalContributions = yearContributions.reduce(
-      (total, contrib) =>
-        total + (contrib.count || contrib.contributionCount || 0),
-      0
-    );
-
-    // Find day with most contributions
-    const maxContribution = yearContributions.reduce(
-      (max, contrib) =>
-        Math.max(max, contrib.count || contrib.contributionCount || 0),
-      0
-    );
+    for (const contrib of yearContributions) {
+      const count = contrib.count || contrib.contributionCount || 0;
+      totalContributions += count;
+      maxContribution = Math.max(maxContribution, count);
+    }
 
     // Find streak (consecutive days with contributions)
     let currentStreak = 0;
@@ -93,12 +87,14 @@ export default class Github {
         const week = this.getWeekNumber(date);
         const day = date.getDay();
         // Handle different property names for contribution level
-        const level =
-          contribution.level !== undefined
-            ? contribution.level
-            : contribution.contributionLevel === undefined
-            ? 0
-            : contribution.contributionLevel;
+        let level;
+        if (contribution.level !== undefined) {
+          level = contribution.level;
+        } else if (contribution.contributionLevel === undefined) {
+          level = 0;
+        } else {
+          level = contribution.contributionLevel;
+        }
         weeks[week][day] = level;
       }
     }

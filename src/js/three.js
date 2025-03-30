@@ -1,8 +1,7 @@
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // eslint-disable-line import/no-unresolved
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-// import { RectAreaLight } from 'three/addons/lights/RectAreaLight.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js'; // eslint-disable-line import/no-unresolved
+import { FontLoader } from 'three/addons/loaders/FontLoader.js'; // eslint-disable-line import/no-unresolved
 
 const device = {
   width: window.innerWidth,
@@ -11,6 +10,10 @@ const device = {
 };
 
 const white = 0xFF_FF_FF; // prettier-ignore
+const black = 0x00_00_00; // prettier-ignore
+const gray = 0xCC_CC_CC; // prettier-ignore
+const greenBase = 0; // prettier-ignore
+const greenOffset = 0.2; // prettier-ignore
 
 export default class Three {
   constructor(canvas, contributions, username, stats) {
@@ -98,7 +101,12 @@ export default class Three {
 
     const basePadding = 0.5;
 
-    this.createContributionsBase(width + basePadding, 2, height + basePadding, BASE_HEIGHT);
+    this.createContributionsBase(
+      width + basePadding,
+      2,
+      height + basePadding,
+      BASE_HEIGHT
+    );
     this.createTerrainMesh(terrainGeometry, allVertices, allColors, allIndices);
     this.addGridHelper(width, height);
   }
@@ -122,13 +130,13 @@ export default class Three {
 
     const base = new T.ExtrudeGeometry(shape, extrudeSettings);
     const material = new T.MeshStandardMaterial({
-      color: 0xffffff,
+      color: white,
       metalness: 0,
       roughness: 0
     });
 
     const baseMesh = new T.Mesh(base, material);
-    baseMesh.position.set(0, depth/2, -height/2);
+    baseMesh.position.set(0, depth / 2, -height / 2);
     this.scene.add(baseMesh);
   }
 
@@ -148,7 +156,11 @@ export default class Three {
         contributionHeights.push(day * CUBE_SIZE);
         const maxContribution = Math.max(...week, 1);
         const normalizedValue = day / maxContribution;
-        contributionColors.push([0, 0.2 + normalizedValue * 0.8, 0]);
+        contributionColors.push([
+          greenBase,
+          greenOffset + normalizedValue * 0.8,
+          0
+        ]);
       }
     }
 
@@ -410,7 +422,7 @@ export default class Three {
 
         // Gold-like material for username
         const textMaterial = new T.MeshStandardMaterial({
-          color: 0x000000,
+          color: black,
           metalness: 0,
           roughness: 1
         });
@@ -430,7 +442,7 @@ export default class Three {
           // Create statistics display with multiple lines
           const statLines = [
             `Total Contributions: ${this.stats.totalContributions}`,
-            `Longest Streak: ${this.stats.longestStreak} days`,
+            `Longest Streak: ${this.stats.longestStreak} days`
           ];
 
           let yOffset = 0.7;
@@ -451,7 +463,7 @@ export default class Three {
               statsGeometry.boundingBox.max.x - statsGeometry.boundingBox.min.x;
 
             const statsMaterial = new T.MeshStandardMaterial({
-              color: 0xCC_CC_CC,
+              color: gray,
               metalness: 0.5,
               roughness: 0.5
             });
