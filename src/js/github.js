@@ -24,7 +24,7 @@ export default class Github {
     const response = await fetch(
       `https://github-contributions-api.jogruber.de/v4/${this.username}`
     );
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
