@@ -39,7 +39,8 @@ export default class Github {
   }
   getWeekNumber(date) {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86_400_000;
-    return Math.floor((pastDaysOfYear + firstDayOfYear.getDay()) / 7);
+    const firstWeekStart = firstDayOfYear.getDay() <= 4 ? firstDayOfYear : new Date(date.getFullYear(), 0, 1 + (7 - firstDayOfYear.getDay()));
+    const pastDaysOfYear = Math.floor((date - firstWeekStart) / 86_400_000);
+    return Math.floor(pastDaysOfYear / 7);
   }
 }
