@@ -3,6 +3,7 @@
 ## Overview
 
 3D visualization of GitHub contributions using ThreeJS.
+[Live Demo](https://cb341.dev/github-topo/)
 
 ## Prerequisites
 
