@@ -1,5 +1,8 @@
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // eslint-disable-line import/no-unresolved
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// import { RectAreaLight } from 'three/addons/lights/RectAreaLight.js';
 
 const device = {
   width: window.innerWidth,
@@ -10,8 +13,10 @@ const device = {
 const white = 0xFF_FF_FF; // prettier-ignore
 
 export default class Three {
-  constructor(canvas, contributions) {
+  constructor(canvas, contributions, username, stats) {
     this.canvas = canvas;
+    this.username = username;
+    this.stats = stats;
 
     this.scene = new T.Scene();
 
@@ -44,6 +49,7 @@ export default class Three {
 
     this.setLights();
     this.setGeometry(contributions);
+    this.addNameplate();
     this.render();
     this.setResize();
   }
@@ -336,6 +342,175 @@ export default class Three {
     gridHelper.material.opacity = 0.2;
     gridHelper.material.transparent = true;
     this.cubeGroup.add(gridHelper);
+  }
+
+  addNameplate() {
+    // Create a loading manager to track when all resources are loaded
+    const loadManager = new T.LoadingManager();
+    
+    // Load font
+    const fontLoader = new FontLoader(loadManager);
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+      // Create main pedestal group
+      const pedestalGroup = new T.Group();
+      this.scene.add(pedestalGroup);
+      
+      // Username nameplate
+      const textGeometry = new TextGeometry(this.username, {
+        font: font,
+        size: 2,
+        height: 0.2,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 0.05,
+        bevelSize: 0.1,
+        bevelOffset: 0,
+        bevelSegments: 5
+      });
+      
+      // textGeometry.computeBoundingBox();
+      // const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+      const textWidth = 2;
+      
+      // Gold-like material for username
+      const textMaterial = new T.MeshStandardMaterial({ 
+        color: 0xffffff,
+        metalness: 0,
+        roughness: 0
+      });
+      
+      const textMesh = new T.Mesh(textGeometry, textMaterial);
+      textMesh.position.set(-textWidth / 2, -2, -7);
+      textMesh.castShadow = true;
+      pedestalGroup.add(textMesh);
+      
+      // Create pedestal base (3-tier design)
+      const pedestalWidth = Math.max(textWidth + 6, 12);
+      const pedestalDepth = 1;
+      
+      // Bottom tier (largest)
+      const bottomTierGeometry = new T.BoxGeometry(pedestalWidth, 0.5, pedestalDepth);
+      const pedestalMaterial = new T.MeshStandardMaterial({
+        color: 0x222222,
+        metalness: 0.6,
+        roughness: 0.2
+      });
+      
+      const bottomTier = new T.Mesh(bottomTierGeometry, pedestalMaterial);
+      bottomTier.position.set(0, -3, -7);
+      bottomTier.castShadow = true;
+      bottomTier.receiveShadow = true;
+      pedestalGroup.add(bottomTier);
+      
+      // Middle tier
+      const middleTierGeometry = new T.BoxGeometry(pedestalWidth * 0.9, 0.4, pedestalDepth * 0.9);
+      const middleTier = new T.Mesh(middleTierGeometry, pedestalMaterial);
+      middleTier.position.set(0, -2.55, -7);
+      middleTier.castShadow = true;
+      middleTier.receiveShadow = true;
+      pedestalGroup.add(middleTier);
+      
+      // Top tier
+      const topTierGeometry = new T.BoxGeometry(pedestalWidth * 0.8, 0.3, pedestalDepth * 0.8);
+      const topTierMaterial = new T.MeshStandardMaterial({
+        color: 0x333333,
+        metalness: 0.7,
+        roughness: 0.2
+      });
+      
+      const topTier = new T.Mesh(topTierGeometry, topTierMaterial);
+      topTier.position.set(0, -2.2, -7);
+      topTier.castShadow = true;
+      topTier.receiveShadow = true;
+      pedestalGroup.add(topTier);
+      
+      // Add decorative edge lighting
+      // const edgeLight = new T.RectAreaLight(0x6a89cc, 2, pedestalWidth * 0.8, 0.1);
+      // edgeLight.position.set(0, -2.05, -7);
+      // edgeLight.rotation.x = -Math.PI / 2;
+      // pedestalGroup.add(edgeLight);
+
+      // Add statistics display if available
+      if (this.stats) {
+        // Container for stats
+        const statsGroup = new T.Group();
+        statsGroup.position.set(0, -2.2, -5.7);
+        pedestalGroup.add(statsGroup);
+        
+        // Create statistics display with multiple lines
+        const statLines = [
+          `Total Contributions: ${this.stats.totalContributions}`,
+          `Longest Streak: ${this.stats.longestStreak} days`,
+          `Max in One Day: ${this.stats.maxContribution}`
+        ];
+        
+        let yOffset = 0;
+        const lineHeight = 0.4;
+        
+        for (const line of statLines) {
+          const statsGeometry = new TextGeometry(line, {
+            font: font,
+            size: 0.3,
+            height: 0.03,
+            curveSegments: 4,
+            bevelEnabled: false
+          });
+          
+          statsGeometry.computeBoundingBox();
+          const statsWidth = statsGeometry.boundingBox.max.x - statsGeometry.boundingBox.min.x;
+          
+          const statsMaterial = new T.MeshStandardMaterial({ 
+            color: 0xcccccc,
+            metalness: 0.5,
+            roughness: 0.5
+          });
+          
+          const statsMesh = new T.Mesh(statsGeometry, statsMaterial);
+          statsMesh.position.set(-statsWidth / 2, yOffset, 0);
+          statsGroup.add(statsMesh);
+          
+          yOffset -= lineHeight;
+        }
+        
+        // Add a GitHub logo or icon
+        const logoGeometry = new T.CircleGeometry(0.4, 32);
+        const logoMaterial = new T.MeshStandardMaterial({ 
+          color: 0xffffff,
+          metalness: 0.5,
+          roughness: 0.2
+        });
+        
+        const logo = new T.Mesh(logoGeometry, logoMaterial);
+        logo.position.set(0, 0.8, 0);
+        statsGroup.add(logo);
+        
+        // Create "GitHub" text
+        const githubGeometry = new TextGeometry("GitHub", {
+          font: font,
+          size: 0.25,
+          height: 0.05,
+          curveSegments: 4,
+          bevelEnabled: false
+        });
+        
+        githubGeometry.computeBoundingBox();
+        const githubWidth = githubGeometry.boundingBox.max.x - githubGeometry.boundingBox.min.x;
+        
+        const githubMaterial = new T.MeshStandardMaterial({ 
+          color: 0xffffff,
+          metalness: 0.6,
+          roughness: 0.2
+        });
+        
+        const githubMesh = new T.Mesh(githubGeometry, githubMaterial);
+        githubMesh.position.set(-githubWidth / 2, 0.3, 0);
+        statsGroup.add(githubMesh);
+      }
+      
+      // Adjust camera position for better view
+      this.camera.position.set(0, 15, 26);
+      this.controls.update();
+    });
   }
 
   render() {
